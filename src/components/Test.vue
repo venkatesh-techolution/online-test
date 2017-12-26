@@ -1,7 +1,7 @@
 <template>
     <div>
-        <h1>{{test}}</h1> <span>Time : {{ timer }} /(10 min) </span> 
-        <li v-if="!isTestOver" class="list-container" v-for="(q, i) in questionsList" :key="i">
+        <h1>{{test}}</h1> <span v-if="!isTimeOver">Time Left : {{ timer }} / 90:00 </span> 
+        <li v-if="!isTestOver && !isTimeOver" class="list-container" v-for="(q, i) in questionsList" :key="i">
             <div class="main-q" v-if="currentQuestionIndex === i">
                 <div class="question">
                     <div class="q-q">
@@ -49,7 +49,6 @@
 
 <script>
 /* eslint-disable */
-
 export default {
   name: 'test-page',
   data () {
@@ -61,7 +60,8 @@ export default {
       showErrorMsg: false,
       timer: '01:00',
       timerID: undefined,
-      duration: 60000, // in milliseconds
+      isTimeOver: false,
+      duration: 5.4e+6, // 5400000in milliseconds
       questionsList: [
         {
           id: 1,
@@ -88,7 +88,7 @@ export default {
   },
   computed: {
     isLast: function() {
-      return this.questionsList.length === this.answersList.length;
+      return this.isLastChek();
     }
   },
   methods: {
@@ -128,8 +128,13 @@ export default {
             this.updateTime();
         }, 1000);
     },
+    isLastChek() {
+        if(this.isTimeOver){
+            return true;
+        };
+        return this.questionsList.length === this.answersList.length;;
+    },
     updateTime() {
-        console.log(this.duration);
         if (this.duration) {
           this.duration = this.duration - 1000;
           let min = (this.duration / 1000 / 60);
@@ -141,6 +146,7 @@ export default {
           min = Math.floor(min);
           this.timer = min+':'+sec;
         } else {
+            this.isTimeOver = true;
             clearInterval(this.timerID);
             alert('Your time is over :-(');
         }
@@ -154,6 +160,7 @@ export default {
   },
   beforeDetroy() {
       console.log('destroying');
+      clearInterval(this.timerID)
   }
 }
 </script>
@@ -162,38 +169,31 @@ export default {
 .list-container {
     list-style: none;
 }
-
 .question {
     display: inline;
 }
-
 .error {
     font-family: inherit;
     color: #ff0000
 }
-
 a {
     text-decoration: none;
     display: inline-block;
     padding: 8px 16px;
     cursor: pointer;
 }
-
 a:hover {
     background-color: #ddd;
     color: black;
 }
-
 .previous {
     background-color: #f1f1f1;
     color: black;
 }
-
 .next {
     background-color: #4CAF50;
     color: white;
 }
-
 textarea {
   margin-top: 10px;
   margin-left: 50px;
@@ -217,12 +217,21 @@ textarea {
   padding: 5px 8px;
   transition: background-color 0.2s ease 0s;
 }
-
-
 textarea:focus {
     background: none repeat scroll 0 0 #FFFFFF;
     outline-width: 0;
 }
-
 </style>
 
+© 2017 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+API
+Training
+Shop
+Blog
+About
