@@ -111,7 +111,8 @@ export default {
     },
     done: function () {
       this.isTestOver = true;
-      console.log(this.answersList);
+      this.isTimeOver = true;
+      clearInterval(this.timerID);
       this.answersList = [];
     },
     updateAnswer: function() {
