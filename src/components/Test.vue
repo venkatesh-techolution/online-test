@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>{{test}}</h1>
+        <h1>{{test}}</h1> <span>Time : {{ timer }} /(10 min) </span> 
         <li v-if="!isTestOver" class="list-container" v-for="(q, i) in questionsList" :key="i">
             <div class="main-q" v-if="currentQuestionIndex === i">
                 <div class="question">
@@ -59,6 +59,9 @@ export default {
       answer: '',
       isTestOver: false,
       showErrorMsg: false,
+      timer: '01:00',
+      timerID: undefined,
+      duration: 60000, // in milliseconds
       questionsList: [
         {
           id: 1,
@@ -80,7 +83,8 @@ export default {
     this.test = this.$route.params.testId;
   },
   mounted() {
-    this.setFocus()
+    this.startTimer();
+    this.setFocus();
   },
   computed: {
     isLast: function() {
@@ -113,11 +117,33 @@ export default {
     updateAnswer: function() {
       this.answer = this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer || '';
     },
-    showPreview() {
+    showPreview() { 
         alert('In Progress');
     },
     setFocus() {
        this.$refs.focus[0].focus();
+    },
+    startTimer() {
+        this.timerID = setInterval(() => {
+            this.updateTime();
+        }, 1000);
+    },
+    updateTime() {
+        console.log(this.duration);
+        if (this.duration) {
+          this.duration = this.duration - 1000;
+          let min = (this.duration / 1000 / 60);
+          let r = min % 1;
+          let sec = Math.floor(r * 60);
+          if (sec < 10) {
+            sec = '0'+sec;
+          }
+          min = Math.floor(min);
+          this.timer = min+':'+sec;
+        } else {
+            clearInterval(this.timerID);
+            alert('Your time is over :-(');
+        }
     }
   },
   watch: {
@@ -125,6 +151,9 @@ export default {
       this.updateAnswer();
       this.setFocus();
     }
+  },
+  beforeDetroy() {
+      console.log('destroying');
   }
 }
 </script>
