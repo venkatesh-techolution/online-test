@@ -25,7 +25,7 @@
                         </a>
                         <!-- <a v-if="i !== questionsList.length-1"  -->
                         <a
-                          @click.prevent="next(q.id)" 
+                          @click.prevent="next(q.id, q.question)" 
                           class="next">Next &raquo;
                         </a>
                         <!-- <a v-if="i == questionsList.length-1" 
@@ -36,10 +36,19 @@
                 </div>
             </div>
         </li>
-        <div v-if="isLast && !isTestOver" class="list-over">
-            <a @click.prevent="showPreview()" class="previous"> Show Preview</a>
-            <a @click.prevent="done()" class="next">Save and Submit</a>
+
+        <!-- after last question -->
+        <div v-if="isLast && !isTestOver && !isPreview" class="list-over">
+            <a @click.prevent="showPreview" class="previous"> Show Preview</a>
+            <a @click.prevent="done" class="next">Save and Submit</a>
         </div>
+
+        <!-- Preivew Section here -->
+        <div class="preview" v-if="isPreview">
+            <app-preview :answersList="answersList" @closePreview="showPreview($event)"></app-preview>
+        </div>
+        
+        <!-- Test done -->
         <div class="test-over" v-if="isTestOver">
           <h3>Test was submitted, Thanks for your time..</h3>
           <a href="/"> Goto Home </a>
@@ -49,6 +58,9 @@
 
 <script>
 /* eslint-disable */
+
+import Preview from './Preview';
+
 export default {
   name: 'test-page',
   data () {
@@ -58,9 +70,10 @@ export default {
       answer: '',
       isTestOver: false,
       showErrorMsg: false,
-      timer: '01:00',
+      timer: '90:00',
       timerID: undefined,
       isTimeOver: false,
+      isPreview: false,
       duration: 5.4e+6, // 5400000in milliseconds
       questionsList: [
         {
@@ -79,6 +92,9 @@ export default {
       answersList: []
     }
   },
+  components: {
+      'app-preview': Preview
+  },
   created () {
     this.test = this.$route.params.testId;
   },
@@ -94,9 +110,11 @@ export default {
   methods: {
     previous: function () {
       --this.currentQuestionIndex;
-      this.answer = this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer ? this.answersList[this.currentQuestionIndex].answer : this.answer;
+      this.answer = this.answersList[this.currentQuestionIndex] && 
+                    this.answersList[this.currentQuestionIndex].answer 
+                    ? this.answersList[this.currentQuestionIndex].answer : this.answer;
     },
-    next: function (id) {
+    next: function (id, question) {
       if(!this.answer && this.answer === '') {
           this.showErrorMsg = true
           return;
@@ -104,22 +122,30 @@ export default {
       if (this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer) {
           this.answersList[this.currentQuestionIndex].answer = this.answer;
       } else {
-          this.answersList.push({id, answer: this.answer});
+          this.answersList.push({id, question, answer: this.answer});
       }
       ++this.currentQuestionIndex;
       this.showErrorMsg = false;
+      return;
     },
     done: function () {
       this.isTestOver = true;
       this.isTimeOver = true;
       clearInterval(this.timerID);
+      // need to save the data on server
       this.answersList = [];
+      return;
     },
     updateAnswer: function() {
       this.answer = this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer || '';
+      return;
     },
-    showPreview() { 
-        alert('In Progress');
+    showPreview(updatedAnswers) { 
+        this.isPreview = !this.isPreview;
+        if(!(updatedAnswers instanceof Event)) {
+           this.answersList = updatedAnswers;
+        }
+        return;
     },
     setFocus() {
        this.$refs.focus[0].focus();
@@ -151,16 +177,17 @@ export default {
             clearInterval(this.timerID);
             alert('Your time is over :-(');
         }
+        return;
     }
   },
   watch: {
     currentQuestionIndex: function() {
       this.updateAnswer();
       this.setFocus();
+      return;
     }
   },
   beforeDetroy() {
-      console.log('destroying');
       clearInterval(this.timerID)
   }
 }

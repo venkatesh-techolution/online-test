@@ -40,12 +40,13 @@ export default {
   },
   methods: {
     save: function() {
-        let user = {
-            name: this.name,
-            position: this.position,
-            place: this.place
-        };
-        this.$router.push(`/u/${this.name}`);
+      let user = {
+          name: this.name,
+          position: this.position,
+          place: this.place
+      };
+      this.$router.push(`/u/${this.name}`);
+      return;
     }
   },
   validations: {
