@@ -45,7 +45,7 @@ export default {
             position: this.position,
             place: this.place
         };
-        this.$router.push(`/user/${this.name}`);
+        this.$router.push(`/u/${this.name}`);
     }
   },
   validations: {

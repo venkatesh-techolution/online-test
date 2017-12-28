@@ -31,7 +31,7 @@ export default new Router({
       component: Test
     },
     {
-      path: '/user/:name',
+      path: '/u/:name',
       name: 'user-dash-board',
       component: UserDashBoard
     }
