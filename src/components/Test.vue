@@ -1,7 +1,7 @@
 <template>
     <div>
-        <h1>{{test}}</h1> <span>Time : {{ timer }} /(10 min) </span> 
-        <li v-if="!isTestOver" class="list-container" v-for="(q, i) in questionsList" :key="i">
+        <h1>{{test}}</h1> <span v-if="!isTimeOver">Time Left : {{ timer }} / 90:00 </span> 
+        <li v-if="!isTestOver && !isTimeOver" class="list-container" v-for="(q, i) in questionsList" :key="i">
             <div class="main-q" v-if="currentQuestionIndex === i">
                 <div class="question">
                     <div class="q-q">
@@ -25,7 +25,7 @@
                         </a>
                         <!-- <a v-if="i !== questionsList.length-1"  -->
                         <a
-                          @click.prevent="next(q.id)" 
+                          @click.prevent="next(q.id, q.question)" 
                           class="next">Next &raquo;
                         </a>
                         <!-- <a v-if="i == questionsList.length-1" 
@@ -36,10 +36,19 @@
                 </div>
             </div>
         </li>
-        <div v-if="isLast && !isTestOver" class="list-over">
-            <a @click.prevent="showPreview()" class="previous"> Show Preview</a>
-            <a @click.prevent="done()" class="next">Save and Submit</a>
+
+        <!-- after last question -->
+        <div v-if="isLast && !isTestOver && !isPreview" class="list-over">
+            <a @click.prevent="showPreview" class="previous"> Show Preview</a>
+            <a @click.prevent="done" class="next">Save and Submit</a>
         </div>
+
+        <!-- Preivew Section here -->
+        <div class="preview" v-if="isPreview">
+            <app-preview :answersList="answersList" @closePreview="showPreview($event)"></app-preview>
+        </div>
+        
+        <!-- Test done -->
         <div class="test-over" v-if="isTestOver">
           <h3>Test was submitted, Thanks for your time..</h3>
           <a href="/"> Goto Home </a>
@@ -50,6 +59,8 @@
 <script>
 /* eslint-disable */
 
+import Preview from './Preview';
+
 export default {
   name: 'test-page',
   data () {
@@ -59,9 +70,11 @@ export default {
       answer: '',
       isTestOver: false,
       showErrorMsg: false,
-      timer: '01:00',
+      timer: '90:00',
       timerID: undefined,
-      duration: 60000, // in milliseconds
+      isTimeOver: false,
+      isPreview: false,
+      duration: 5.4e+6, // 5400000in milliseconds
       questionsList: [
         {
           id: 1,
@@ -79,6 +92,9 @@ export default {
       answersList: []
     }
   },
+  components: {
+      'app-preview': Preview
+  },
   created () {
     this.test = this.$route.params.testId;
   },
@@ -88,15 +104,17 @@ export default {
   },
   computed: {
     isLast: function() {
-      return this.questionsList.length === this.answersList.length;
+      return this.isLastChek();
     }
   },
   methods: {
     previous: function () {
       --this.currentQuestionIndex;
-      this.answer = this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer ? this.answersList[this.currentQuestionIndex].answer : this.answer;
+      this.answer = this.answersList[this.currentQuestionIndex] && 
+                    this.answersList[this.currentQuestionIndex].answer 
+                    ? this.answersList[this.currentQuestionIndex].answer : this.answer;
     },
-    next: function (id) {
+    next: function (id, question) {
       if(!this.answer && this.answer === '') {
           this.showErrorMsg = true
           return;
@@ -104,21 +122,30 @@ export default {
       if (this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer) {
           this.answersList[this.currentQuestionIndex].answer = this.answer;
       } else {
-          this.answersList.push({id, answer: this.answer});
+          this.answersList.push({id, question, answer: this.answer});
       }
       ++this.currentQuestionIndex;
       this.showErrorMsg = false;
+      return;
     },
     done: function () {
       this.isTestOver = true;
-      console.log(this.answersList);
+      this.isTimeOver = true;
+      clearInterval(this.timerID);
+      // need to save the data on server
       this.answersList = [];
+      return;
     },
     updateAnswer: function() {
       this.answer = this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer || '';
+      return;
     },
-    showPreview() { 
-        alert('In Progress');
+    showPreview(updatedAnswers) { 
+        this.isPreview = !this.isPreview;
+        if(!(updatedAnswers instanceof Event)) {
+           this.answersList = updatedAnswers;
+        }
+        return;
     },
     setFocus() {
        this.$refs.focus[0].focus();
@@ -128,8 +155,13 @@ export default {
             this.updateTime();
         }, 1000);
     },
+    isLastChek() {
+        if(this.isTimeOver){
+            return true;
+        };
+        return this.questionsList.length === this.answersList.length;;
+    },
     updateTime() {
-        console.log(this.duration);
         if (this.duration) {
           this.duration = this.duration - 1000;
           let min = (this.duration / 1000 / 60);
@@ -141,19 +173,22 @@ export default {
           min = Math.floor(min);
           this.timer = min+':'+sec;
         } else {
+            this.isTimeOver = true;
             clearInterval(this.timerID);
             alert('Your time is over :-(');
         }
+        return;
     }
   },
   watch: {
     currentQuestionIndex: function() {
       this.updateAnswer();
       this.setFocus();
+      return;
     }
   },
   beforeDetroy() {
-      console.log('destroying');
+      clearInterval(this.timerID)
   }
 }
 </script>
@@ -162,38 +197,31 @@ export default {
 .list-container {
     list-style: none;
 }
-
 .question {
     display: inline;
 }
-
 .error {
     font-family: inherit;
     color: #ff0000
 }
-
 a {
     text-decoration: none;
     display: inline-block;
     padding: 8px 16px;
     cursor: pointer;
 }
-
 a:hover {
     background-color: #ddd;
     color: black;
 }
-
 .previous {
     background-color: #f1f1f1;
     color: black;
 }
-
 .next {
     background-color: #4CAF50;
     color: white;
 }
-
 textarea {
   margin-top: 10px;
   margin-left: 50px;
@@ -217,12 +245,21 @@ textarea {
   padding: 5px 8px;
   transition: background-color 0.2s ease 0s;
 }
-
-
 textarea:focus {
     background: none repeat scroll 0 0 #FFFFFF;
     outline-width: 0;
 }
-
 </style>
 
+© 2017 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+API
+Training
+Shop
+Blog
+About
