@@ -1,9 +1,20 @@
+/* eslint-disable */
+
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from '@/components/Home'
-import Test from '@/components/Test'
+
+// components
+const Home = () => import('@/components/Home.vue')
+const Test = () => import('@/components/Test.vue')
+const UserDashBoard = () => import('@/components/UserDashBoard.vue')
+
+
+
+// middle wares
+import Vuelidate from 'vuelidate'
 
 Vue.use(Router)
+Vue.use(Vuelidate)
 
 export default new Router({
   mode: 'history',
@@ -11,13 +22,18 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Home',
+      name: 'home',
       component: Home
     },
     {
       path: '/test/:testId',
-      name: 'Test Page',
+      name: 'test-page',
       component: Test
+    },
+    {
+      path: '/u/:name',
+      name: 'user-dash-board',
+      component: UserDashBoard
     }
   ]
 })

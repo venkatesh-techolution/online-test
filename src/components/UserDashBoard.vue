@@ -1,24 +1,21 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <div class="user-container">
-      <app-user></app-user>
-    </div>  
-    <!-- <ul>
-      <li v-for="(link, i) in links" :key="i">
-        <a :href="`test/${link.test}`" @click="selectedTest = link.test">{{ link.test }}</a>
-      </li>
-    </ul> -->
-  </div>
+  <section>
+    <div>
+      <h1>{{ msg }}</h1>
+      <h2>Select Tour Test</h2>
+      <ul>
+        <li v-for="(link, i) in links" :key="i">
+          <a :href="`/test/${link.test}`">{{ link.test }}</a>
+        </li>
+     </ul>
+    </div>
+  </section>
 </template>
 
 <script>
 /* eslint-disable */
-
-import User from './User';
-
 export default {
-  name: 'HelloWorld',
+  name: 'dashboard',
   data () {
     return {
       msg: 'Techolution Online Test',
@@ -33,18 +30,15 @@ export default {
         }
       ]
     }
-  },
-  components: {
-    'app-user': User
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
+  
 <style scoped>
 h1, h2 {
   font-weight: normal;
 }
+
 ul {
   list-style-type: none;
   padding: 0;
