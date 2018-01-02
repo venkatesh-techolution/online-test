@@ -5,7 +5,6 @@
             @input="$v.name.$touch"
             :class="{error: $v.name.$error, valid: $v.name.$dirty && !$v.name.$invalid}"
             type="text" id="fname" name="firstname" placeholder="Your name..">
-        
        <label for="lname">{{ place ? 'You are from '+ place: 'Where are you from ?'}}</label>
        <input v-model="place"
             @input="$v.place.$touch"
