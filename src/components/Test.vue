@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>{{test}}</h1> <span v-if="!isTimeOver">Time Left : {{ timer }} / 90:00 </span> 
+        <h1>{{`${test} Developer`}}</h1> <span v-if="!isTimeOver">Time Left : {{ timer }} / 90:00 </span> 
         <li v-if="!isTestOver && !isTimeOver" class="list-container" v-for="(q, i) in questionsList" :key="i">
             <div class="main-q" v-if="currentQuestionIndex === i">
                 <div class="question">
@@ -58,7 +58,7 @@
 
 <script>
 /* eslint-disable */
-
+import axios from 'axios';
 import Preview from './Preview';
 
 export default {
@@ -74,7 +74,8 @@ export default {
       timerID: undefined,
       isTimeOver: false,
       isPreview: false,
-      duration: 5.4e+6, // 5400000in milliseconds
+      duration: 5.4e+6, // 5400000in milliseconds,
+      examId: undefined,
       questionsList: [
         {
           id: 1,
@@ -96,7 +97,12 @@ export default {
       'app-preview': Preview
   },
   created () {
-    this.test = this.$route.params.testId;
+    this.test = this.$route.params.testType;
+    this.$store.dispatch('updateQuestions', this.test || '');
+    this.questionsList = this.$store.state.questionsList[0] && this.$store.state.questionsList[0].questions;
+    if(this.$store.state.examTypes.length) {
+        this.examId = this.$store.state.examTypes.find((e) => e.name === this.test)._id;
+    }
   },
   mounted() {
     this.startTimer();
@@ -129,12 +135,22 @@ export default {
       return;
     },
     done: function () {
-      this.isTestOver = true;
-      this.isTimeOver = true;
-      clearInterval(this.timerID);
-      // need to save the data on server
-      this.answersList = [];
-      return;
+      this.saveAnswers();
+    },
+    saveAnswers() {
+        axios.post('http://192.168.1.20:3000/answers', {
+            type: this.examId,
+            by: this.$store.state.user._id,
+            QandA: this.answersList
+        })
+        .then((res) => res.data.result)
+        .then((result) => {
+            console.log('After Saving the Answers');
+            this.isTestOver = true;
+            this.isTimeOver = true;
+            clearInterval(this.timerID);
+            this.answersList = [];
+        });
     },
     updateAnswer: function() {
       this.answer = this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer || '';

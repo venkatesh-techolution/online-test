@@ -3,12 +3,7 @@
     <h1>{{ msg }}</h1>
     <div class="user-container">
       <app-user></app-user>
-    </div>  
-    <!-- <ul>
-      <li v-for="(link, i) in links" :key="i">
-        <a :href="`test/${link.test}`" @click="selectedTest = link.test">{{ link.test }}</a>
-      </li>
-    </ul> -->
+    </div> 
   </div>
 </template>
 
@@ -18,20 +13,10 @@
 import User from './User';
 
 export default {
-  name: 'HelloWorld',
+  name: 'home',
   data () {
     return {
-      msg: 'Techolution Online Test',
-      links: [
-        {
-          test: 'UI Developer',
-          description: 'UI Developer'
-        },
-        {
-          test: 'Java Developer',
-          description: 'Java Developer'
-        }
-      ]
+      msg: 'Techolution Online Test'
     }
   },
   components: {

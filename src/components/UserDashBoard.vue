@@ -5,7 +5,8 @@
       <h2>Select Tour Test</h2>
       <ul>
         <li v-for="(link, i) in links" :key="i">
-          <a :href="`/test/${link.test}`">{{ link.test }}</a>
+          <!-- <a :href="`/test/${link.name}`">{{ `${link.name} Developer`  }}</a> -->
+          <router-link :to="`/test/${link.name}`">{{ `${link.name} Developer`  }}</router-link>
         </li>
      </ul>
     </div>
@@ -14,21 +15,26 @@
 
 <script>
 /* eslint-disable */
+import axios from 'axios';
+
 export default {
   name: 'dashboard',
+  created() {
+    this.updateTypes();
+  },
   data () {
     return {
-      msg: 'Techolution Online Test',
-      links: [
-        {
-          test: 'UI Developer',
-          description: 'UI Developer'
-        },
-        {
-          test: 'Java Developer',
-          description: 'Java Developer'
-        }
-      ]
+      msg: 'Techolution Online Test'
+    }
+  },
+  computed: {
+    links: function() {
+      return this.$store.state.examTypes || [];
+    }
+  },
+  methods: {
+    updateTypes() {
+      this.$store.dispatch('updateTypes');
     }
   }
 }
