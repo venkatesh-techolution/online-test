@@ -27,6 +27,7 @@
 
 <script>
 /* eslint-disable */
+import axios from 'axios';
 import { required, minLength } from 'vuelidate/lib/validators';
 
 export default {
@@ -45,9 +46,9 @@ export default {
           position: this.position,
           place: this.place
       };
+      this.$store.dispatch('updateUser', user);
       this.$router.push(`/u/${this.name}`);
-      return;
-    }
+    },
   },
   validations: {
     name: { required, minLength: minLength(3)},

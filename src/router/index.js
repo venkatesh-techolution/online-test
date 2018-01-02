@@ -26,7 +26,7 @@ export default new Router({
       component: Home
     },
     {
-      path: '/test/:testId',
+      path: '/test/:testType',
       name: 'test-page',
       component: Test
     },
