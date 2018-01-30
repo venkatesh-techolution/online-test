@@ -1,7 +1,7 @@
 <template>
   <section>
     <div>
-      <h1>{{ msg }}</h1>
+      <h1 v-once> {{msg}}</h1>
       <h2>Select Tour Test</h2>
       <ul>
         <li v-for="(link, i) in links" :key="i">
@@ -15,33 +15,52 @@
 
 <script>
 /* eslint-disable */
-import axios from 'axios';
+import axios from "axios";
 
 export default {
-  name: 'dashboard',
+  name: "dashboard",
   created() {
-    this.updateTypes();
+    this.routeValidations();
   },
-  data () {
-    return {
-      msg: 'Techolution Online Test'
+  beforeRouteLeave(to, from, next) {
+    if(to.path === '/') {
+      next(false)
+    } else {
+      next()
     }
+  },
+  data() {
+    return {
+      msg: "Online Test"
+    };
   },
   computed: {
     links: function() {
-      return this.$store.state.examTypes || [];
+      return (
+        (this.$store.state.examTypes.length && this.$store.state.examTypes) || [
+          { name: "UI" }
+        ]
+      );
     }
   },
   methods: {
     updateTypes() {
-      this.$store.dispatch('updateTypes');
+      this.$store.dispatch("updateTypes");
+    },
+    routeValidations() {
+      if (!this.$store.state.isAuthenticated) {
+        this.$router.push("/");
+      } else {
+        this.updateTypes();
+      }
     }
   }
-}
+};
 </script>
   
 <style scoped>
-h1, h2 {
+h1,
+h2 {
   font-weight: normal;
 }
 

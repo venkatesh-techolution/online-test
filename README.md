@@ -1,6 +1,6 @@
 # online-test
 
-> A Vue.js project
+> A Vue.js project for handling the Techolution online test, please follow the steps to run the project
 
 ## Build Setup
 

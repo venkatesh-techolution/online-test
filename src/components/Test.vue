@@ -58,50 +58,64 @@
 
 <script>
 /* eslint-disable */
-import axios from 'axios';
-import Preview from './Preview';
+import axios from "axios";
+import Preview from "./Preview";
 
 export default {
-  name: 'test-page',
-  data () {
+  name: "test-page",
+  beforeRouteLeave(to, from, next) {
+    // Check if user clicked back buton
+    if (to.path.indexOf("/u/") !== -1) {
+      next(false);
+    } else {
+      next();
+    }
+  },
+  data() {
     return {
       test: undefined,
       currentQuestionIndex: 0,
-      answer: '',
+      answer: "",
       isTestOver: false,
       showErrorMsg: false,
-      timer: '90:00',
+      timer: "90:00",
       timerID: undefined,
       isTimeOver: false,
       isPreview: false,
-      duration: 5.4e+6, // 5400000in milliseconds,
+      duration: 5.4e6, // 5400000in milliseconds,
       examId: undefined,
       questionsList: [
         {
           id: 1,
-          question: 'What is are advantages of Javascript?'
+          question: "What is are advantages of Javascript?"
         },
         {
           id: 2,
-          question: 'What is are promises in Javascript?'
+          question: "What is are promises in Javascript?"
         },
         {
           id: 3,
-          question: 'What is are closures in Javascript?'
+          question: "What is are closures in Javascript?"
         }
       ],
       answersList: []
-    }
+    };
   },
   components: {
-      'app-preview': Preview
+    "app-preview": Preview
   },
-  created () {
-    this.test = this.$route.params.testType;
-    this.$store.dispatch('updateQuestions', this.test || '');
-    this.questionsList = this.$store.state.questionsList[0] && this.$store.state.questionsList[0].questions;
-    if(this.$store.state.examTypes.length) {
-        this.examId = this.$store.state.examTypes.find((e) => e.name === this.test)._id;
+  created() {
+    if (!this.$store.state.isAuthenticated) {
+      this.$router.push("/");
+    } else {
+      this.test = this.$route.params.testType;
+      this.$store.dispatch("updateQuestions", this.test || "");
+      // this.questionsList = this.$store.state.questionsList[0] && this.$store.state.questionsList[0].questions;
+      if (this.$store.state.examTypes.length) {
+        this.examId = this.$store.state.examTypes.find(
+          e => e.name === this.test
+        )._id;
+      }
     }
   },
   mounted() {
@@ -114,129 +128,136 @@ export default {
     }
   },
   methods: {
-    previous: function () {
+    previous: function() {
       --this.currentQuestionIndex;
-      this.answer = this.answersList[this.currentQuestionIndex] && 
-                    this.answersList[this.currentQuestionIndex].answer 
-                    ? this.answersList[this.currentQuestionIndex].answer : this.answer;
+      this.answer =
+        this.answersList[this.currentQuestionIndex] &&
+        this.answersList[this.currentQuestionIndex].answer
+          ? this.answersList[this.currentQuestionIndex].answer
+          : this.answer;
     },
-    next: function (id, question) {
-      if(!this.answer && this.answer === '') {
-          this.showErrorMsg = true
-          return;
-      };
-      if (this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer) {
-          this.answersList[this.currentQuestionIndex].answer = this.answer;
+    next: function(id, question) {
+      if (!this.answer && this.answer === "") {
+        this.showErrorMsg = true;
+        return;
+      }
+      if (
+        this.answersList[this.currentQuestionIndex] &&
+        this.answersList[this.currentQuestionIndex].answer
+      ) {
+        this.answersList[this.currentQuestionIndex].answer = this.answer;
       } else {
-          this.answersList.push({id, question, answer: this.answer});
+        this.answersList.push({ id, question, answer: this.answer });
       }
       ++this.currentQuestionIndex;
       this.showErrorMsg = false;
-      return;
     },
-    done: function () {
+    done: function() {
       this.saveAnswers();
     },
     saveAnswers() {
-        axios.post('http://192.168.1.20:3000/answers', {
-            type: this.examId,
-            by: this.$store.state.user._id,
-            QandA: this.answersList
-        })
-        .then((res) => res.data.result)
-        .then((result) => {
-            console.log('After Saving the Answers');
-            this.isTestOver = true;
-            this.isTimeOver = true;
-            clearInterval(this.timerID);
-            this.answersList = [];
-        });
+      //   axios
+      //     .post("http://192.168.1.20:3000/answers", {
+      //       type: this.examId,
+      //       by: this.$store.state.user._id,
+      //       QandA: this.answersList
+      //     })
+      //     .then(res => res.data.result)
+      //     .then(result => {
+      this.clearTheTest();
+      // });
+    },
+    clearTheTest() {
+      this.isTestOver = true;
+      this.isTimeOver = true;
+      clearInterval(this.timerID);
+      this.answersList = [];
+      this.$store.dispatch("updateAuth", false);
     },
     updateAnswer: function() {
-      this.answer = this.answersList[this.currentQuestionIndex] && this.answersList[this.currentQuestionIndex].answer || '';
-      return;
+      this.answer =
+        (this.answersList[this.currentQuestionIndex] &&
+          this.answersList[this.currentQuestionIndex].answer) ||
+        "";
     },
-    showPreview(updatedAnswers) { 
-        this.isPreview = !this.isPreview;
-        if(!(updatedAnswers instanceof Event)) {
-           this.answersList = updatedAnswers;
-        }
-        return;
+    showPreview(updatedAnswers) {
+      this.isPreview = !this.isPreview;
+      if (!(updatedAnswers instanceof Event)) {
+        this.answersList = updatedAnswers;
+      }
     },
     setFocus() {
-       this.$refs.focus[0].focus();
+      this.$refs.focus[0].focus();
     },
     startTimer() {
-        this.timerID = setInterval(() => {
-            this.updateTime();
-        }, 1000);
+      this.timerID = setInterval(() => {
+        this.updateTime();
+      }, 1000);
     },
     isLastChek() {
-        if(this.isTimeOver){
-            return true;
-        };
-        return this.questionsList.length === this.answersList.length;;
+      if (this.isTimeOver) {
+        return true;
+      }
+      return this.questionsList.length === this.answersList.length;
     },
     updateTime() {
-        if (this.duration) {
-          this.duration = this.duration - 1000;
-          let min = (this.duration / 1000 / 60);
-          let r = min % 1;
-          let sec = Math.floor(r * 60);
-          if (sec < 10) {
-            sec = '0'+sec;
-          }
-          min = Math.floor(min);
-          this.timer = min+':'+sec;
-        } else {
-            this.isTimeOver = true;
-            clearInterval(this.timerID);
-            alert('Your time is over :-(');
+      if (this.duration) {
+        this.duration = this.duration - 1000;
+        let min = this.duration / 1000 / 60;
+        let r = min % 1;
+        let sec = Math.floor(r * 60);
+        if (sec < 10) {
+          sec = "0" + sec;
         }
-        return;
+        min = Math.floor(min);
+        this.timer = min + ":" + sec;
+      } else {
+        this.isTimeOver = true;
+        clearInterval(this.timerID);
+        alert("Your time is over :-(");
+      }
     }
   },
   watch: {
     currentQuestionIndex: function() {
       this.updateAnswer();
       this.setFocus();
-      return;
     }
   },
   beforeDetroy() {
-      clearInterval(this.timerID)
+    clearInterval(this.timerID);
   }
-}
+};
 </script>
 
 <style scoped>
 .list-container {
-    list-style: none;
+  list-style: none;
 }
 .question {
-    display: inline;
+  display: inline;
 }
 .error {
-    font-family: inherit;
-    color: #ff0000
+  font-family: inherit;
+  color: #ff0000;
 }
 a {
-    text-decoration: none;
-    display: inline-block;
-    padding: 8px 16px;
-    cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  padding: 8px 16px;
+  cursor: pointer;
 }
 a:hover {
-    background-color: #ddd;
-    color: black;
+  background-color: #ddd;
+  color: black;
 }
 .previous {
-    background-color: #f1f1f1;
-    color: black;
+  background-color: #f1f1f1;
+  color: black;
 }
 .next {
-    background-color: #4CAF50;
-    color: white;
+  background-color: #4caf50;
+  color: white;
 }
 textarea {
   margin-top: 10px;
@@ -248,22 +269,22 @@ textarea {
   -moz-border-right-colors: none;
   -moz-border-top-colors: none;
   background: none repeat scroll 0 0 rgba(0, 0, 0, 0.07);
-  border-color: -moz-use-text-color #FFFFFF #FFFFFF -moz-use-text-color;
+  border-color: -moz-use-text-color #ffffff #ffffff -moz-use-text-color;
   border-image: none;
   border-radius: 6px 6px 6px 6px;
   border-style: none solid solid none;
   border-width: medium 1px 1px medium;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset;
   color: #555555;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 1em;
   line-height: 1.4em;
   padding: 5px 8px;
   transition: background-color 0.2s ease 0s;
 }
 textarea:focus {
-    background: none repeat scroll 0 0 #FFFFFF;
-    outline-width: 0;
+  background: none repeat scroll 0 0 #ffffff;
+  outline-width: 0;
 }
 </style>
 
