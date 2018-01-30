@@ -6,6 +6,7 @@ import axios from 'axios';
 const UPDATE_USER = 'UPDATE_USER';
 const EXAM_TYPES = 'EXAM_TYPES';
 const QUESTIONS_LIST = 'QUESTIONS_LIST';
+const UPDATE_AUTH = 'UPDATE_AUTH';
 
 const apiUrl = 'http://192.168.1.20:3000'
 
@@ -13,7 +14,8 @@ const store = () => new Vuex.Store({
     state: {
         user: {},
         examTypes: [],
-        questionsList: []
+        questionsList: [],
+        isAuthenticated: false
     },
     mutations: { 
         [UPDATE_USER] (state, user) {
@@ -24,17 +26,24 @@ const store = () => new Vuex.Store({
         },
         [QUESTIONS_LIST] (state, questionsList) {
             state.questionsList = questionsList;
+        },
+        [UPDATE_AUTH] (state, flag) {
+            state.isAuthenticated = flag;
         }
     },
     actions: {
         async updateTypes({commit}) {
-            commit('EXAM_TYPES', await getTypes());
+            commit(EXAM_TYPES, await getTypes());
         },
         async updateUser({commit}, user) {
-            commit('UPDATE_USER' , await saveUser(user));
+            commit(UPDATE_USER , await saveUser(user));
         },
         async updateQuestions({commit}, type) {
-            commit('QUESTIONS_LIST', await getQuestions(type));
+            commit(QUESTIONS_LIST, await getQuestions(type));
+        },
+
+        async updateAuth({commit}) {
+            commit(UPDATE_AUTH, true)
         }
     }
 })
